@@ -1,0 +1,71 @@
+pip install opencv-python opencv-python-headless dlib numpy
+import cv2
+import dlib
+import numpy as np
+from imutils import face_utils
+
+# Load the Haar cascade for face detection
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Load pre-trained face recognition model and shape predictor
+shape_predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+face_recognition_model = dlib.face_recognition_model_v1('dlib_face_recognition_resnet_model_v1.dat')
+
+# Load the known faces and their encodings
+known_faces = []
+known_names = []
+
+def add_known_face(name, image_path):
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+
+    for (x, y, w, h) in faces:
+        # Detect face landmarks
+        rect = dlib.rectangle(int(x), int(y), int(x + w), int(y + h))
+        landmarks = shape_predictor(gray, rect)
+        landmarks = face_utils.shape_to_np(landmarks)
+
+        # Compute face encoding
+        face_encoding = np.array(face_recognition_model.compute_face_descriptor(image, landmarks))
+        
+        # Add to known faces
+        known_faces.append(face_encoding)
+        known_names.append(name)
+
+def recognize_faces(image_path):
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+
+    for (x, y, w, h) in faces:
+        # Detect face landmarks
+        rect = dlib.rectangle(int(x), int(y), int(x + w), int(y + h))
+        landmarks = shape_predictor(gray, rect)
+        landmarks = face_utils.shape_to_np(landmarks)
+
+        # Compute face encoding
+        face_encoding = np.array(face_recognition_model.compute_face_descriptor(image, landmarks))
+
+        # Compare with known faces
+        distances = np.linalg.norm(known_faces - face_encoding, axis=1)
+        min_distance = min(distances)
+        if min_distance < 0.6:  # Threshold for recognizing a face
+            index = np.argmin(distances)
+            name = known_names[index]
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(image, name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+        else:
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.putText(image, "Unknown", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
+    cv2.imshow('Face Recognition', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+# Example: Add known faces
+add_known_face("Person1", "person1.jpg")
+add_known_face("Person2", "person2.jpg")
+
+# Example: Recognize faces in a new image
+recognize_faces("test_image.jpg")
