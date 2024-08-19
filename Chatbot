@@ -1,0 +1,42 @@
+# Simple Rule-Based Chatbot
+
+def chatbot_response(user_input):
+    # Convert the user input to lowercase to make the chatbot case-insensitive
+    user_input = user_input.lower()
+
+    # Predefined responses based on user input
+    if "hello" in user_input or "hi" in user_input:
+        return "Hello! How can I assist you today?"
+    elif "how are you" in user_input:
+        return "I'm just a bot, but I'm here to help you! How about you?"
+    elif "what's your name" in user_input or "who are you" in user_input:
+        return "I'm a simple chatbot created to assist you with basic tasks."
+    elif "time" in user_input:
+        return "Sorry, I can't tell the time. But you can check your device's clock!"
+    elif "weather" in user_input:
+        return "I'm not equipped to check the weather, but you can try asking me about something else!"
+    elif "bye" in user_input or "goodbye" in user_input:
+        return "Goodbye! It was nice talking to you."
+    else:
+        return "I'm not sure how to respond to that. Could you ask something else?"
+
+# Main loop to keep the conversation going
+def chat():
+    print("Chatbot: Hello! You can start chatting with me. Type 'bye' to exit.")
+    
+    while True:
+        # Get user input
+        user_input = input("You: ")
+        
+        # Get chatbot's response
+        response = chatbot_response(user_input)
+        
+        # Print chatbot's response
+        print("Chatbot:", response)
+        
+        # Break the loop if the user says 'bye'
+        if "bye" in user_input.lower():
+            break
+
+# Start the chat
+chat()
